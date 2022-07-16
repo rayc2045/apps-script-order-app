@@ -108,7 +108,7 @@
       ></lottie-player>
     </section>
 
-    <section v-if="status === 1" class="container modal-sm mt-4 mb-5">
+    <section v-show="status === 1" class="container modal-sm mt-4 mb-5">
       <form class="mx-auto" @submit.prevent="submit">
         <h6>基本資料</h6>
         <hr />
@@ -164,7 +164,7 @@
             </button>
           </div>
         </div>
-        <div v-if="price" class="my-4">
+        <div v-show="price" class="my-4">
           <h6>最後確認</h6>
           <hr />
           <div class="row align-items-center">
@@ -182,7 +182,7 @@
       </form>
     </section>
 
-    <section v-if="status === 2" class="container modal-sm mt-4 mb-5">
+    <section v-show="status === 2" class="container modal-sm mt-4 mb-5">
       <h6>訂單明細 (結帳時請出示畫面)</h6>
       <hr />
       <p class="mb-0">姓名：{{ name }}</p>
@@ -199,7 +199,7 @@
       </button>
     </section>
 
-    <section v-if="status === 3" class="container modal-sm mt-4 mb-5">
+    <section v-show="status === 3" class="container modal-sm mt-4 mb-5">
       <h6>訂單已取消</h6>
       <hr />
       <p class="mb-0">姓名：{{ name }}</p>
@@ -305,8 +305,6 @@
         },
         async init() {
           await this.checkStoreOpen();
-          // this.status = 1
-          // await this.fetchProducts()
           this.isLoading = false;
         },
         async checkStoreOpen() {
