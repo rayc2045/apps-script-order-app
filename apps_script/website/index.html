@@ -1,0 +1,375 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/39514595?s=32"/>
+    <title>Order Web App</title>
+    <meta name="title" content="Order Web App" />
+    <meta name="description" content="Order app with Google sheet and Apps Script"/>
+    <meta name="keywords" content="front-end responsive utility-classes grid-layout responsive-design vue-template frontend-template animate-css front-end-template vue3 bootstrap5 petite-vue"/>
+    <meta name="author" content="Ray Chang" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://create-petite-app.netlify.app/intro/"/>
+    <meta property="og:title" content="Order Web App" />
+    <meta property="og:description" content="Order app with Google sheet and Apps Script"/>
+    <meta property="og:image" content="https://opengraph.githubassets.com/2469fa99cf18457e00fdde599b67f77cc3ff11f3195f336bef9e8b6ae314659d/rayc2045/create-petite-app"/>
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://create-petite-app.netlify.app/intro/"/>
+    <meta property="twitter:title" content="Order Web App" />
+    <meta property="twitter:description" content="Order app with Google sheet and Apps Script"/>
+    <meta property="twitter:image" content="https://opengraph.githubassets.com/2469fa99cf18457e00fdde599b67f77cc3ff11f3195f336bef9e8b6ae314659d/rayc2045/create-petite-app"/>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"/>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.css" rel="stylesheet"/>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/4.2.0/mdb.min.js" defer
+    ></script>
+    <!-- Petite Vue	-->
+    <script src="https://unpkg.com/petite-vue"></script>
+    <!-- LottieFiles-->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer
+    ></script>
+    <style>
+      .warning-bar-content {
+        display: none
+      }
+
+      [v-cloak] {
+        opacity: 0;
+      }
+
+      .form-outline.form-muted .form-control:focus ~ .form-label {
+        color: var(--mdb-muted);
+      }
+      .form-outline.form-muted
+        .form-control:focus
+        ~ .form-notch
+        .form-notch-middle {
+        border-color: var(--mdb-muted);
+        box-shadow: 0 1px 0 0 var(--mdb-muted);
+        border-top: 1px solid transparent;
+      }
+      .form-outline.form-muted
+        .form-control:focus
+        ~ .form-notch
+        .form-notch-leading {
+        border-color: var(--mdb-muted);
+        box-shadow: -1px 0 0 0 var(--mdb-muted), 0 1px 0 0 var(--mdb-muted),
+          0 -1px 0 0 var(--mdb-muted);
+      }
+      .form-outline.form-muted
+        .form-control:focus
+        ~ .form-notch
+        .form-notch-trailing {
+        border-color: var(--mdb-muted);
+        box-shadow: 1px 0 0 0 var(--mdb-muted), 0 -1px 0 0 var(--mdb-muted),
+          0 1px 0 0 var(--mdb-muted);
+      }
+      .form-outline.form-muted .form-control::placeholder {
+        color: var(--mdb-muted);
+      }
+    </style>
+  </head>
+  <body
+    class="min-vh-100 d-grid place-items-center bg-light"
+    :class="{ 'overflow-hidden': isLoading }"
+    style="cursor: default"
+    @contextmenu.prevent="ContextMenu.showMenu($event)"
+    @selectstart.prevent
+    @dragstart.prevent
+    @vue:mounted="init"
+  >
+    <header>
+      <img
+        class="w-100 mb-4"
+        style="max-height: 20rem; object-fit: cover"
+        src="https://tokyo-kitchen.icook.network/uploads/recipe/cover/407415/925ffeec2b1f9747.jpg"
+        alt=""
+      />
+      <div class="container text-center mt-3 mb-4">
+        <h1>招牌鹹酥雞線上訂餐</h1>
+        <h4 v-cloak class="text-muted">{{ statusTitle }}</h4>
+      </div>
+    </header>
+
+    <section v-if="!status" class="container modal-sm mt-4 mb-5">
+      <lottie-player
+        class="w-75 mx-auto"
+        src="https://assets5.lottiefiles.com/private_files/lf30_zucxicad.json"
+        background="transparent"
+        speed=".75"
+        loop
+        autoplay
+      ></lottie-player>
+    </section>
+
+    <section v-if="status === 1" class="container modal-sm mt-4 mb-5">
+      <form class="mx-auto" @submit.prevent="submit">
+        <h6>基本資料</h6>
+        <hr />
+        <div class="form-outline form-muted mb-3">
+          <input
+            type="text"
+            id="name"
+            class="form-control"
+            v-model="name"
+            required
+          />
+          <label class="form-label text-muted px-1" for="name">姓名</label>
+        </div>
+        <div class="form-outline form-muted mb-4">
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            :value="phone"
+            @input="handlePhoneInput($event);"
+            pattern="[0-9]{4}[0-9]{3}[0-9]{3}"
+            class="form-control"
+            required
+          />
+          <label for="phone" class="form-label text-muted bg-light px-1"
+            >手機號碼 (10)</label
+          >
+        </div>
+        <div v-if="products.length" class="my-4">
+          <h6>餐點內容</h6>
+          <hr />
+          <div
+            v-for="(item, idx) in products"
+            class="d-flex align-items-center gap-4 mb-3"
+          >
+            <button
+              class="btn btn-sm border py-2 shadow-none"
+              style="border-color: var(--mdb-gray-500) !important"
+              @click.prevent="handleOrderInput('-', item)"
+            >
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="flex-grow-1 text-center"
+              >{{ item.title }} * {{ orderedProducts.find(orderedItem =>
+              orderedItem.title === item.title)?.num ?? 0 }}</span
+            >
+            <button
+              class="btn btn-sm border py-2 shadow-none"
+              style="border-color: var(--mdb-gray-500) !important"
+              @click.prevent="handleOrderInput('+', item)"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div v-if="price" class="my-4">
+          <h6>最後確認</h6>
+          <hr />
+          <div class="row align-items-center">
+            <div class="col-9">{{ order }}</div>
+            <strong class="col-3 text-end">${{ price }}</strong>
+          </div>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-warning btn-block d-block overflow-hidden"
+          :class="{ disabled: !order || !price }"
+        >
+          送出訂單
+        </button>
+      </form>
+    </section>
+
+    <section v-if="status === 2" class="container modal-sm mt-4 mb-5">
+      <h6>訂單明細 (結帳時請出示畫面)</h6>
+      <hr />
+      <p class="mb-0">姓名：{{ name }}</p>
+      <p class="mb-0">電話：{{ phone }}</p>
+      <p class="mb-0">餐點：{{ order }}</p>
+      <p class="mb-4">總計：${{ price }}</p>
+      <button
+        type="button"
+        class="btn btn-dark btn-block d-block overflow-hidden"
+        style="background-color: var(--mdb-gray-500)"
+        @click.prevent="cancelOrder"
+      >
+        取消訂單
+      </button>
+    </section>
+
+    <section v-if="status === 3" class="container modal-sm mt-4 mb-5">
+      <h6>訂單已取消</h6>
+      <hr />
+      <p class="mb-0">姓名：{{ name }}</p>
+      <p class="mb-0">電話：{{ phone }}</p>
+      <p class="mb-0">餐點：{{ order }}</p>
+      <p class="mb-4">總計：${{ price }}</p>
+      <button
+        type="button"
+        class="btn btn-warning btn-block d-block overflow-hidden"
+        @click.prevent="restart"
+      >
+        重新訂餐
+      </button>
+    </section>
+
+    <footer
+      class="d-grid align-content-center text-muted text-center py-3"
+      style="background-color: var(--mdb-gray-200)"
+    >
+      <div>
+        <small>台北市大安區民生南路一段249號</small>
+        <br />
+        <small>週一至週日 {{ openingTime }}</small>
+        <br />
+        <small>(02) 2963-1288</small>
+        <br />
+        <a
+          class="text-muted"
+          href="https://github.com/rayc2045"
+          target="_blank"
+        >
+          <small><i class="fab fa-github"></i> rayc2045</small>
+        </a>
+      </div>
+    </footer>
+
+    <!-- Loader -->
+    <div
+      v-if="isLoading"
+      class="vw-100 vh-100 position-fixed start-0 top-0 d-flex justify-content-center align-items-center"
+      style="z-index: 1000001; background-color: rgba(0, 0, 0, 0.1)"
+      @contextmenu.prevent.stop
+    >
+      <div class="spinner-border" style="color: dimgray"></div>
+    </div>
+    <script>
+      'use strict';
+      console.clear();
+
+      const PRODUCTS_API = 'https://script.google.com/macros/s/AKfycbz3x11pjeM5i7iuJzRsFW4deOo8c5XzX2LP2C7tK-QCGCCjUtb3r-SqZn1GleedqA5-/exec';
+
+      const App = {
+        isLoading: true,
+        status: 0, // 0: unavailable, 1: available, 2: ordered, 3: canceled
+        openingTime: '11:00—19:00',
+        products: [], // { title: '無骨鹹酥雞', price: 65 }
+        orderedProducts: [],
+        time: '',
+        name: '',
+        phone: '',
+        get statusTitle() {
+          if (this.status === 1) return '今天想要吃什麼呢？';
+          if (this.status === 2) return '訂購完成！';
+          if (this.status === 3) return '取消訂單';
+          return '還沒開始營業喔！';
+        },
+        get order() {
+          return this.orderedProducts
+            .map(item =>
+              item.num > 1 ? `${item.title}*${item.num}` : item.title
+            )
+            .join('、');
+        },
+        get price() {
+          let total = 0;
+          this.orderedProducts.forEach(
+            item => (total += item.price * item.num)
+          );
+          return total;
+        },
+        get data() {
+          return {
+            time: this.time,
+            name: this.name,
+            phone: this.phone,
+            order: this.order,
+            price: this.price,
+          };
+        },
+        async init() {
+          await this.checkStoreOpen();
+          // this.status = 1
+          // await this.fetchProducts()
+          this.isLoading = false;
+        },
+        async checkStoreOpen() {
+          const currentTime = new Date();
+          const currentHour = currentTime.getHours();
+          const currentSecond = currentTime.getSeconds();
+          const startHour = this.openingTime
+            .replaceAll(':00', '')
+            .split('—')[0];
+          const endHour = this.openingTime.replaceAll(':00', '').split('—')[1];
+          if (this.status > 1) return;
+          if (currentHour < startHour || currentHour > endHour) {
+            this.status = 0;
+          } else {
+            this.status = 1;
+            if (!this.products.length) await this.fetchProducts();
+          }
+          setTimeout(this.checkStoreOpen, (60 - currentSecond) * 1000);
+        },
+        async fetchProducts() {
+          this.isLoading = true;
+          this.products = await fetch(PRODUCTS_API).then(res => res.json());
+          this.isLoading = false;
+        },
+        getCurrentTime() {
+          const time = new Date();
+          return `${time.getFullYear()}/${
+            time.getMonth() + 1
+          }/${time.getDate()} ${time.getHours()}:${time.getMinutes()}`;
+        },
+        handlePhoneInput(e) {
+          const currentInput = e.target.value;
+          if (!/^[0-9]*$/.test(currentInput)) return (e.target.value = '');
+          this.phone = currentInput.replace(/[^0-9]/g, '');
+        },
+        handleOrderInput(type, product) {
+          const matchIdx = this.orderedProducts.findIndex(
+            item => item.title === product.title
+          );
+          const [min, max] = [1, 5];
+          if (type === '-') {
+            if (matchIdx === -1) return;
+            if (this.orderedProducts[matchIdx].num === min)
+              return this.orderedProducts.splice(matchIdx, 1);
+            this.orderedProducts[matchIdx].num--;
+          }
+          if (type === '+') {
+            if (matchIdx === -1)
+              return this.orderedProducts.push({ ...product, num: 1 });
+            if (this.orderedProducts[matchIdx].num === max) return;
+            this.orderedProducts[matchIdx].num++;
+          }
+        },
+        async submit() {
+          this.isLoading = true;
+          if (!this.price) return;
+          this.time = this.getCurrentTime();
+          google.script.run.addSheetRow(this.data);
+          this.status = 2;
+          this.isLoading = false;
+        },
+        cancelOrder() {
+          this.isLoading = true;
+          google.script.run.deleteSheetRow(this.data);
+          this.status = 3;
+          this.isLoading = false;
+        },
+        restart() {
+          this.status = 0;
+          this.orderedProducts = [];
+          this.checkStoreOpen();
+        },
+      };
+
+      PetiteVue.createApp(App).mount();
+    </script>
+  </body>
+</html>
