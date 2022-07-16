@@ -50,7 +50,7 @@ function getSheetData(sheet) {
 }
 
 function getRowIdx(data, comparedItem) {
-  let rowIdx = 1
+  let rowIdx = 2
 
   for (const item of data) {
     let count = 0
