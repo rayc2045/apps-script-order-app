@@ -345,7 +345,7 @@
             .split('—')[0];
           const endHour = this.openingTime.replaceAll(':00', '').split('—')[1];
           if (this.status > 1) return;
-          if (currentHour < startHour || currentHour > endHour) {
+          if (currentHour < startHour || currentHour >= endHour) {
             this.status = 0;
           } else {
             this.status = 1;
