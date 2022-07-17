@@ -391,13 +391,21 @@
           this.isLoading = true;
           if (!this.price) return;
           this.time = this.getCurrentTime();
-          google.script.run.addSheetRow(this.data);
+          await new Promise(resolve => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .addSheetRow(this.data);
+          });
           this.status = 2;
           this.isLoading = false;
         },
-        cancelOrder() {
+        async cancelOrder() {
           this.isLoading = true;
-          google.script.run.deleteSheetRow(this.data);
+          await new Promise(resolve => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .deleteSheetRow(this.data);
+          });
           this.status = 3;
           this.isLoading = false;
         },
