@@ -118,7 +118,8 @@
             type="text"
             id="name"
             class="form-control"
-            v-model="name"
+            :value="name"
+            @input="name = $el.value.replace('  ', '');"
             required
           />
           <label class="form-label text-muted px-1" for="name">姓名</label>
@@ -181,9 +182,12 @@
               type="text"
               id="note"
               class="form-control"
-              v-model="note"
+              :value="note"
+              @input="note = $el.value.replace('  ', '');"
             />
-            <label class="form-label text-muted px-1" for="note">辣或不辣？是否要餐具？</label>
+            <label class="form-label text-muted px-1" for="note"
+              >辣或不辣？是否要餐具？</label
+            >
           </div>
         </div>
         <button
@@ -299,9 +303,6 @@
       'use strict';
       const { reactive, createApp } = PetiteVue;
 
-      const PRODUCTS_API =
-        'https://script.google.com/macros/s/AKfycbz3x11pjeM5i7iuJzRsFW4deOo8c5XzX2LP2C7tK-QCGCCjUtb3r-SqZn1GleedqA5-/exec';
-
       const Window = reactive({
         width: window.innerWidth,
         updateWidth() {
@@ -318,7 +319,7 @@
         time: '',
         name: '',
         phone: '',
-        note: '不要餐具',
+        note: '不要辣、不要餐具',
         get headerImgStyle() {
           const fit = 'object-fit: cover;';
           if (Window.width > 992) return 'height: 20rem;' + fit;
@@ -350,9 +351,15 @@
             time: this.time,
             name: this.name,
             phone: this.phone,
-            order: this.order,
+            order: this.order.replaceAll('、', '\n'),
             price: this.price,
-            note: this.note
+            note: this.getCleanText(
+              this.note
+                .replaceAll('不要辣椒', '')
+                .replaceAll('不要辣', '')
+                .replaceAll('不要餐具', ''),
+              '\n'
+            ),
           };
         },
         async init() {
@@ -378,16 +385,33 @@
         },
         async fetchProducts() {
           this.isLoading = true;
-          this.products = await fetch(PRODUCTS_API).then(res => res.json());
+          this.products = await new Promise(resolve => {
+            google.script.run.withSuccessHandler(resolve).getProducts();
+          });
+          // this.products = await fetch(PRODUCTS_API).then(res => res.json());
           this.isLoading = false;
         },
         getCurrentTime() {
           const time = new Date();
           return `${time.getFullYear()}/${
             time.getMonth() + 1
-          }/${time.getDate()} ${time.getHours()}:${
-            time.getMinutes().toString().padStart(2, 0)
-          }`;
+          }/${time.getDate()} ${time.getHours()}:${time
+            .getMinutes()
+            .toString()
+            .padStart(2, 0)}`;
+        },
+        getCleanText(str, join) {
+          return str
+            .replaceAll('、', ' ')
+            .replaceAll('，', ' ')
+            .replaceAll(',', ' ')
+            .replaceAll('。', ' ')
+            .replaceAll('.', ' ')
+            .replaceAll('/', ' ')
+            .split(' ')
+            .map(item => item.replaceAll(' ', ''))
+            .filter(item => item.length)
+            .join(join);
         },
         handlePhoneInput(e) {
           const currentInput = e.target.value;
@@ -415,9 +439,9 @@
         async submit() {
           this.isLoading = true;
           if (!this.price) return;
+          this.name = this.getCleanText(this.name, ' ');
+          this.note = this.getCleanText(this.note, '、');
           this.time = this.getCurrentTime();
-          this.name = this.name.replaceAll('  ', '').trim();
-          this.note = this.note.replaceAll('  ', '').trim();
           try {
             await new Promise(resolve => {
               google.script.run
@@ -425,11 +449,10 @@
                 .addSheetRow(this.data);
             });
             this.status = 2;
-            this.isLoading = false;
           } catch (err) {
             console.error(err);
-            this.isLoading = false;
           }
+          this.isLoading = false;
         },
         async cancelOrder() {
           this.isLoading = true;
@@ -440,11 +463,10 @@
                 .deleteSheetRow(this.data);
             });
             this.status = 3;
-            this.isLoading = false;
           } catch (err) {
             console.error(err);
-            this.isLoading = false;
           }
+          this.isLoading = false;
         },
         restart() {
           this.status = 0;

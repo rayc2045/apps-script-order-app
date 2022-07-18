@@ -2,6 +2,25 @@ function doGet() {
   return getHtmlFile('index')
 }
 
+function getHtmlFile(fileName) {
+  return HtmlService
+    .createTemplateFromFile(fileName)
+    .evaluate()
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+}
+
+function getProducts() {
+  const menuSheet = SpreadsheetApp
+    .openById('1yBMVAMrvUvh24VWS_bAwR5_34ARMQEwfRDhOa0pLv2w')
+    .getSheetByName('Menu')
+
+  return getSheetData(menuSheet)
+}
+
+function getSheetRows(sheet) {
+  return sheet.getDataRange().getValues()
+}
+
 function addSheetRow(dataObj) {
   const orderSheet = SpreadsheetApp
     .openById('1yBMVAMrvUvh24VWS_bAwR5_34ARMQEwfRDhOa0pLv2w')
@@ -25,17 +44,6 @@ function deleteSheetRow(dataObj) {
   const sheetData = getSheetData(orderSheet)
   const rowIdx = getRowIdx(sheetData, dataObj)
   orderSheet.deleteRow(rowIdx)
-}
-
-function getHtmlFile(fileName) {
-  return HtmlService
-    .createTemplateFromFile(fileName)
-    .evaluate()
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-}
-
-function getSheetRows(sheet) {
-  return sheet.getDataRange().getValues()
 }
 
 function getSheetData(sheet) {
@@ -69,3 +77,9 @@ function getRowIdx(data, comparedItem) {
 
   return -1
 }
+
+// function getJSONContent(content) {
+//   return ContentService
+//     .createTextOutput(JSON.stringify(content))
+//     .setMimeType(ContentService.MimeType.JSON)
+// }
