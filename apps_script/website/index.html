@@ -166,11 +166,24 @@
           </div>
         </div>
         <div v-show="price" class="my-4">
-          <h6>最後確認</h6>
+          <h6>餐點確認</h6>
           <hr />
           <div class="row align-items-center">
             <div class="col-9">{{ order }}</div>
             <strong class="col-3 text-center">${{ price }}</strong>
+          </div>
+        </div>
+        <div v-show="price" class="my-4">
+          <h6>備註</h6>
+          <hr />
+          <div class="form-outline form-muted mb-3">
+            <input
+              type="text"
+              id="note"
+              class="form-control"
+              v-model="note"
+            />
+            <label class="form-label text-muted px-1" for="note">辣或不辣？是否要餐具？</label>
           </div>
         </div>
         <button
@@ -198,6 +211,10 @@
         <div class="d-flex">
           <span>餐點：</span>
           <span class="col text-break">{{ order }}</span>
+        </div>
+        <div class="d-flex">
+          <span>備註：</span>
+          <span class="col text-break">{{ note }}</span>
         </div>
         <div class="d-flex">
           <span>總計：</span>
@@ -229,6 +246,10 @@
         <div class="d-flex">
           <span>餐點：</span>
           <span class="col text-break">{{ order }}</span>
+        </div>
+        <div class="d-flex">
+          <span>備註：</span>
+          <span class="col text-break">{{ note }}</span>
         </div>
         <div class="d-flex">
           <span>總計：</span>
@@ -297,6 +318,7 @@
         time: '',
         name: '',
         phone: '',
+        note: '不要餐具',
         get headerImgStyle() {
           const fit = 'object-fit: cover;';
           if (Window.width > 992) return 'height: 20rem;' + fit;
@@ -330,6 +352,7 @@
             phone: this.phone,
             order: this.order,
             price: this.price,
+            note: this.note
           };
         },
         async init() {
@@ -393,23 +416,35 @@
           this.isLoading = true;
           if (!this.price) return;
           this.time = this.getCurrentTime();
-          await new Promise(resolve => {
-            google.script.run
-              .withSuccessHandler(resolve)
-              .addSheetRow(this.data);
-          });
-          this.status = 2;
-          this.isLoading = false;
+          this.name = this.name.replaceAll('  ', '').trim();
+          this.note = this.note.replaceAll('  ', '').trim();
+          try {
+            await new Promise(resolve => {
+              google.script.run
+                .withSuccessHandler(resolve)
+                .addSheetRow(this.data);
+            });
+            this.status = 2;
+            this.isLoading = false;
+          } catch (err) {
+            console.error(err);
+            this.isLoading = false;
+          }
         },
         async cancelOrder() {
           this.isLoading = true;
-          await new Promise(resolve => {
-            google.script.run
-              .withSuccessHandler(resolve)
-              .deleteSheetRow(this.data);
-          });
-          this.status = 3;
-          this.isLoading = false;
+          try {
+            await new Promise(resolve => {
+              google.script.run
+                .withSuccessHandler(resolve)
+                .deleteSheetRow(this.data);
+            });
+            this.status = 3;
+            this.isLoading = false;
+          } catch (err) {
+            console.error(err);
+            this.isLoading = false;
+          }
         },
         restart() {
           this.status = 0;
